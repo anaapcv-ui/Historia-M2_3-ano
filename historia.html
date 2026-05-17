@@ -1,0 +1,2278 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Máquina do Tempo - História ⏰</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Comic Sans MS', 'Trebuchet MS', sans-serif; }
+  body {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    min-height: 100vh;
+    padding: 10px;
+    color: #222;
+  }
+  
+  .estrela {
+    position: fixed;
+    background: white;
+    border-radius: 50%;
+    animation: piscar 3s infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  @keyframes piscar {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+  }
+  
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 0 50px rgba(108, 92, 231, 0.5), 0 15px 40px rgba(0,0,0,0.3);
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+    border: 3px solid #6c5ce7;
+  }
+  
+  header {
+    background: linear-gradient(90deg, #6c5ce7, #fd79a8, #00cec9, #6c5ce7);
+    background-size: 300% 300%;
+    animation: gradientShift 8s ease infinite;
+    padding: 20px;
+    text-align: center;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    position: relative;
+  }
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  header h1 { font-size: 1.9em; margin-bottom: 5px; }
+  header p { font-size: 1em; }
+  
+  .voltar-link {
+    display: inline-block;
+    margin: 10px;
+    padding: 8px 15px;
+    background: rgba(255,255,255,0.9);
+    color: #6c5ce7;
+    text-decoration: none;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.9em;
+  }
+  .voltar-link:hover { background: white; transform: scale(1.05); }
+  
+  /* ABAS */
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    background: #2c3e50;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .tab-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 15px 8px;
+    background: #34495e;
+    color: white;
+    border: none;
+    font-size: 0.9em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    border-bottom: 4px solid transparent;
+    font-family: inherit;
+  }
+  .tab-btn:hover { background: #3d566e; }
+  .tab-btn.active {
+    background: #6c5ce7;
+    border-bottom-color: #fdcb6e;
+  }
+  
+  .tab-content {
+    display: none;
+    padding: 20px;
+    animation: fadeIn 0.5s;
+  }
+  .tab-content.active { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* BARRA DE PROGRESSO E ESTRELAS */
+  .progress-bar {
+    background: #ecf0f1;
+    border-radius: 20px;
+    overflow: hidden;
+    height: 25px;
+    margin: 10px 0 5px;
+    border: 2px solid #6c5ce7;
+  }
+  .progress-fill {
+    background: linear-gradient(90deg, #00cec9, #6c5ce7);
+    height: 100%;
+    width: 0%;
+    transition: width 0.5s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 0.85em;
+  }
+  
+  .estrelas-placar {
+    text-align: center;
+    font-size: 1.5em;
+    margin-bottom: 15px;
+    min-height: 30px;
+    letter-spacing: 5px;
+  }
+  
+  /* BLOCOS */
+  .bloco {
+    background: white;
+    border-radius: 15px;
+    margin-bottom: 18px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border: 3px solid;
+  }
+  
+  .bloco-titulo {
+    padding: 18px 20px;
+    cursor: pointer;
+    color: white;
+    font-size: 1.15em;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s;
+  }
+  .bloco-titulo:hover { filter: brightness(1.1); }
+  .bloco-titulo .seta {
+    transition: transform 0.3s;
+    font-size: 1.3em;
+  }
+  .bloco.aberto .bloco-titulo .seta { transform: rotate(180deg); }
+  
+  /* Cores dos blocos */
+  .bloco-1 { border-color: #00b894; }
+  .bloco-1 .bloco-titulo { background: linear-gradient(135deg, #00b894, #00cec9); }
+  .bloco-2 { border-color: #d4a017; }
+  .bloco-2 .bloco-titulo { background: linear-gradient(135deg, #d4a017, #b8860b); }
+  .bloco-3 { border-color: #5d4037; }
+  .bloco-3 .bloco-titulo { background: linear-gradient(135deg, #5d4037, #8d6e63); }
+  .bloco-4 { border-color: #f39c12; }
+  .bloco-4 .bloco-titulo { background: linear-gradient(135deg, #f39c12, #e67e22); }
+  .bloco-5 { border-color: #6f4e37; }
+  .bloco-5 .bloco-titulo { background: linear-gradient(135deg, #6f4e37, #a0522d); }
+  .bloco-6 { border-color: #2980b9; }
+  .bloco-6 .bloco-titulo { background: linear-gradient(135deg, #2980b9, #3498db); }
+  .bloco-revisao { border-color: #6c5ce7; }
+  .bloco-revisao .bloco-titulo { background: linear-gradient(135deg, #6c5ce7, #fd79a8); }
+  
+  .bloco-conteudo {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease;
+  }
+  .bloco.aberto .bloco-conteudo {
+    max-height: 8000px;
+  }
+  .bloco-conteudo-inner { padding: 20px; }
+  
+  /* Parada da máquina do tempo */
+  .parada-info {
+    background: linear-gradient(135deg, #1a1a2e, #0f3460);
+    color: white;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+    text-align: center;
+    border: 2px solid #00cec9;
+    box-shadow: 0 0 15px rgba(0, 206, 201, 0.3);
+  }
+  .parada-info .ano-grande {
+    font-size: 2em;
+    font-weight: bold;
+    color: #fdcb6e;
+    text-shadow: 0 0 10px rgba(253, 203, 110, 0.5);
+    display: block;
+    margin: 5px 0;
+  }
+  .parada-info .local {
+    font-size: 1.1em;
+    color: #00cec9;
+  }
+  
+  /* Texto principal */
+  .texto-aprender {
+    font-size: 1.05em;
+    line-height: 1.7;
+    color: #333;
+    margin-bottom: 15px;
+  }
+  .texto-aprender p { margin-bottom: 10px; }
+  
+  /* Diálogo dos mascotes */
+  .dialogo {
+    background: linear-gradient(135deg, #fff5e6, #ffe0b2);
+    border-radius: 18px;
+    padding: 15px 18px;
+    margin: 15px 0;
+    border-left: 5px solid #fdcb6e;
+  }
+  .fala {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .fala:last-child { margin-bottom: 0; }
+  .fala-emoji {
+    font-size: 2em;
+    flex-shrink: 0;
+  }
+  .fala-balao {
+    flex: 1;
+    background: white;
+    padding: 10px 15px;
+    border-radius: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    font-size: 0.95em;
+    line-height: 1.5;
+  }
+  .fala-cronos .fala-balao { border: 2px solid #6c5ce7; }
+  .fala-tempinho .fala-balao { border: 2px solid #e17055; }
+  .fala-nome {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 3px;
+  }
+  .fala-cronos .fala-nome { color: #6c5ce7; }
+  .fala-tempinho .fala-nome { color: #e17055; }
+  
+  /* Caixa de conceitos */
+  .caixa-conceitos {
+    background: linear-gradient(135deg, #fff9c4, #fff59d);
+    border-radius: 15px;
+    padding: 18px;
+    margin: 15px 0;
+    border: 3px dashed #f57f17;
+  }
+  .caixa-conceitos h4 {
+    color: #e65100;
+    margin-bottom: 12px;
+    font-size: 1.1em;
+  }
+  .conceito-item {
+    background: white;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  }
+  .conceito-item strong {
+    color: #6c5ce7;
+    display: block;
+    margin-bottom: 3px;
+  }
+  
+  /* Perguntas */
+  .pergunta-titulo {
+    color: #6c5ce7;
+    font-size: 1.1em;
+    font-weight: bold;
+    margin: 20px 0 15px;
+    text-align: center;
+    padding: 10px;
+    background: #f1f0fc;
+    border-radius: 10px;
+    border: 2px solid #6c5ce7;
+  }
+  
+  .pergunta {
+    background: #f9f9f9;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-left: 5px solid #6c5ce7;
+  }
+  .pergunta-texto {
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 12px;
+    font-size: 1.02em;
+  }
+  .opcao {
+    display: block;
+    background: white;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.95em;
+  }
+  .opcao:hover {
+    background: #f1f0fc;
+    border-color: #6c5ce7;
+  }
+  .opcao.certo {
+    background: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+    animation: vibrarCerto 0.5s;
+  }
+  .opcao.errado {
+    background: #f8d7da;
+    border-color: #dc3545;
+    color: #721c24;
+    animation: vibrarErrado 0.5s;
+  }
+  @keyframes vibrarCerto {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px) scale(1.02); }
+    75% { transform: translateX(5px) scale(1.02); }
+  }
+  @keyframes vibrarErrado {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+  }
+  .feedback {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 0.95em;
+    display: none;
+  }
+  .feedback.show { display: block; animation: fadeIn 0.4s; }
+  .feedback.acerto {
+    background: #d4edda;
+    color: #155724;
+    border-left: 4px solid #28a745;
+  }
+  .feedback.erro {
+    background: #f8d7da;
+    color: #721c24;
+    border-left: 4px solid #dc3545;
+  }
+  
+  /* RESUMO FINAL - Diário de Bordo */
+  .diario-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .diario-header h2 {
+    color: #6c5ce7;
+    font-size: 1.8em;
+    margin-bottom: 8px;
+  }
+  
+  .linha-tempo {
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 25px;
+    border: 3px solid #2980b9;
+  }
+  .linha-tempo h3 {
+    color: #1565c0;
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 1.3em;
+  }
+  .tempo-item {
+    background: white;
+    border-radius: 12px;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    border-left: 5px solid #2980b9;
+    position: relative;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+  .tempo-data {
+    background: #2980b9;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 15px;
+    display: inline-block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+  }
+  .tempo-evento {
+    color: #333;
+    line-height: 1.5;
+  }
+  
+  /* Grade de palavras */
+  .grade-palavras {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: 25px;
+  }
+  .palavra-card {
+    background: linear-gradient(135deg, #fff, #f1f0fc);
+    border-radius: 12px;
+    padding: 14px;
+    border-top: 4px solid #6c5ce7;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+  }
+  .palavra-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(108, 92, 231, 0.2);
+  }
+  .palavra-card strong {
+    color: #6c5ce7;
+    font-size: 1.1em;
+    display: block;
+    margin-bottom: 5px;
+  }
+  .palavra-card span {
+    color: #555;
+    font-size: 0.9em;
+    line-height: 1.4;
+  }
+  
+  /* Dicas */
+  .caixa-dicas {
+    background: linear-gradient(135deg, #fff5e6, #ffe0b2);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 25px;
+    border: 3px solid #f39c12;
+  }
+  .caixa-dicas h3 {
+    color: #e65100;
+    margin-bottom: 12px;
+    font-size: 1.3em;
+  }
+  .dica-item {
+    background: white;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-left: 4px solid #f39c12;
+  }
+  
+  /* Mini-quiz */
+  .mini-quiz {
+    background: linear-gradient(135deg, #f8e6ff, #e1bee7);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 25px;
+    border: 3px solid #8e44ad;
+  }
+  .mini-quiz h3 {
+    color: #6c3483;
+    margin-bottom: 12px;
+    text-align: center;
+    font-size: 1.3em;
+  }
+  .quiz-pergunta {
+    background: white;
+    border-radius: 10px;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    border-left: 4px solid #8e44ad;
+    transition: all 0.3s;
+  }
+  .quiz-pergunta:hover {
+    background: #f8e6ff;
+    transform: translateX(5px);
+  }
+  .quiz-pergunta .resposta {
+    display: none;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 2px dashed #8e44ad;
+    color: #6c3483;
+    font-weight: bold;
+  }
+  .quiz-pergunta.show .resposta { display: block; }
+  
+  /* Botão jogo */
+  .btn-jogar {
+    display: block;
+    width: 100%;
+    background: linear-gradient(135deg, #e17055, #fdcb6e);
+    color: white;
+    border: none;
+    padding: 18px;
+    border-radius: 15px;
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 20px;
+    box-shadow: 0 6px 15px rgba(225, 112, 85, 0.4);
+    transition: all 0.3s;
+    font-family: inherit;
+  }
+  .btn-jogar:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 10px 25px rgba(225, 112, 85, 0.5);
+  }
+  
+  /* JOGO V/F */
+  .jogo-container {
+    background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .jogo-info {
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+  .jogo-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    min-height: 200px;
+  }
+  .jogo-pergunta {
+    font-size: 1.1em;
+    line-height: 1.5;
+    margin-bottom: 20px;
+    color: #2c3e50;
+    text-align: center;
+    padding: 15px;
+    background: #f1f0fc;
+    border-radius: 10px;
+  }
+  .jogo-botoes {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-bottom: 15px;
+  }
+  .btn-vf {
+    flex: 1;
+    max-width: 150px;
+    padding: 15px;
+    font-size: 1.2em;
+    font-weight: bold;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    font-family: inherit;
+    color: white;
+  }
+  .btn-vf:hover { transform: scale(1.05); }
+  .btn-v { background: #00b894; }
+  .btn-f { background: #d63031; }
+  .btn-vf:disabled { opacity: 0.6; cursor: not-allowed; }
+  
+  .jogo-feedback {
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 10px;
+    display: none;
+  }
+  .jogo-feedback.show { display: block; animation: fadeIn 0.4s; }
+  .jogo-feedback.acerto {
+    background: #d4edda;
+    color: #155724;
+    border-left: 5px solid #28a745;
+  }
+  .jogo-feedback.erro {
+    background: #f8d7da;
+    color: #721c24;
+    border-left: 5px solid #dc3545;
+  }
+  
+  .btn-proxima, .btn-reiniciar {
+    background: #6c5ce7;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 10px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    font-family: inherit;
+  }
+  .btn-proxima:hover, .btn-reiniciar:hover { background: #5a4cd1; }
+  
+  .resultado-jogo {
+    text-align: center;
+    padding: 30px 20px;
+    background: white;
+    border-radius: 15px;
+  }
+  .resultado-jogo h3 {
+    color: #6c5ce7;
+    font-size: 1.5em;
+    margin-bottom: 15px;
+  }
+  .resultado-estrelas {
+    font-size: 2.5em;
+    margin: 15px 0;
+    letter-spacing: 5px;
+  }
+  
+  /* SIMULADO */
+  .aviso-simulado {
+    background: linear-gradient(135deg, #fdcb6e, #e17055);
+    color: white;
+    padding: 18px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 1em;
+    line-height: 1.5;
+  }
+  .aviso-simulado strong { font-size: 1.1em; }
+  
+  .simulado-questao {
+    background: white;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    border-left: 6px solid #d63031;
+  }
+  .dificuldade {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 0.85em;
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+  .dif-medio {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffc107;
+  }
+  .dif-dificil {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #d63031;
+  }
+  .simulado-questao h4 {
+    color: #2c3e50;
+    margin-bottom: 8px;
+    font-size: 1.1em;
+  }
+  .simulado-questao p { 
+    line-height: 1.6; 
+    color: #444;
+    margin-bottom: 10px;
+  }
+  .sim-opcoes label {
+    display: block;
+    background: #f9f9f9;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .sim-opcoes label:hover {
+    background: #f1f0fc;
+    border-color: #6c5ce7;
+  }
+  .sim-opcoes label.escolhida {
+    background: #e8e3ff;
+    border-color: #6c5ce7;
+    font-weight: bold;
+  }
+  .sim-opcoes input { margin-right: 8px; }
+  
+  .questao-respondida {
+    margin-top: 10px;
+    padding: 8px;
+    border-radius: 6px;
+    font-weight: bold;
+    text-align: center;
+  }
+  .questao-respondida.ok { background: #d4edda; color: #155724; }
+  
+  #btnEntregar {
+    display: block;
+    width: 100%;
+    background: linear-gradient(135deg, #d63031, #fd79a8);
+    color: white;
+    border: none;
+    padding: 18px;
+    border-radius: 15px;
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 20px 0;
+    font-family: inherit;
+    box-shadow: 0 6px 15px rgba(214, 48, 49, 0.4);
+  }
+  #btnEntregar:hover { transform: translateY(-3px); }
+  
+  .resultado-simulado {
+    display: none;
+    background: linear-gradient(135deg, #00b894, #00cec9);
+    color: white;
+    padding: 25px;
+    border-radius: 15px;
+    text-align: center;
+    margin-top: 20px;
+  }
+  .resultado-simulado.show { display: block; animation: fadeIn 0.5s; }
+  .resultado-simulado h3 { font-size: 1.6em; margin-bottom: 10px; }
+  .nota-grande {
+    font-size: 3em;
+    font-weight: bold;
+    margin: 15px 0;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  }
+  .btn-gabarito {
+    display: inline-block;
+    background: white;
+    color: #d63031;
+    padding: 12px 25px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.05em;
+    margin: 10px 5px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    transition: transform 0.2s;
+  }
+  .btn-gabarito:hover { transform: scale(1.05); }
+  
+  /* Confetes */
+  .confete {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    pointer-events: none;
+    z-index: 9999;
+    animation: cair 3s ease-out forwards;
+  }
+  @keyframes cair {
+    0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+  
+  @media (max-width: 600px) {
+    header h1 { font-size: 1.5em; }
+    .tab-btn { font-size: 0.8em; padding: 12px 5px; }
+    .bloco-titulo { font-size: 1em; padding: 15px; }
+    .nota-grande { font-size: 2.4em; }
+    .parada-info .ano-grande { font-size: 1.6em; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <a href="index.html" class="voltar-link">← Voltar</a>
+    <h1>⏰ Máquina do Tempo</h1>
+    <p>Missão Brasil: Idas e Vindas no Campo e na Cidade</p>
+  </header>
+  
+  <div class="tabs">
+    <button class="tab-btn active" onclick="trocarAba('leitura')">📖 Leitura Guiada</button>
+    <button class="tab-btn" onclick="trocarAba('resumo')">⭐ Diário de Bordo</button>
+    <button class="tab-btn" onclick="trocarAba('jogo')">🎮 Teste de Memória</button>
+    <button class="tab-btn" onclick="trocarAba('simulado')">🎯 Prova Final</button>
+  </div>
+  
+  <!-- ABA 1: LEITURA GUIADA -->
+  <div class="tab-content active" id="leitura">
+    
+    <div class="estrelas-placar" id="estrelasLeitura"></div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressoLeitura">0%</div>
+    </div>
+    
+    <div class="dialogo" style="margin-top: 15px;">
+      <div class="fala fala-cronos">
+        <span class="fala-emoji">🤓</span>
+        <div class="fala-balao">
+          <span class="fala-nome">Cronos</span>
+          Olá, viajante! Estamos prontos para embarcar em 6 paradas pelo Brasil. Clique em cada parada para abrir!
+        </div>
+      </div>
+      <div class="fala fala-tempinho">
+        <span class="fala-emoji">😜</span>
+        <div class="fala-balao">
+          <span class="fala-nome">Tempinho</span>
+          Apertem os cintos! 🚀 A cada parada você ganha estrelas respondendo certo. Bora!
+        </div>
+      </div>
+    </div>
+    
+    <!-- BLOCO 1: Chegadas e Partidas -->
+    <div class="bloco bloco-1" id="bloco1">
+      <div class="bloco-titulo" onclick="abrirBloco(1)">
+        <span>🚶 Parada 1 — Chegadas e Partidas: Por que as pessoas se mudam?</span>
+        <span class="seta">▼</span>
+      </div>
+      <div class="bloco-conteudo">
+        <div class="bloco-conteudo-inner">
+          
+          <div class="parada-info">
+            <span class="ano-grande">⏰ Início de tudo</span>
+            <span class="local">📍 De cavernas a cidades</span>
+          </div>
+          
+          <div class="texto-aprender">
+            <p>Desde o começo da história, as pessoas <strong>mudam de lugar</strong> para sobreviver. Os primeiros grupos humanos andavam por vários lugares procurando frutos e caçando animais. Não tinham casa fixa, e dormiam em <strong>cavernas e tocas</strong> para se proteger do frio, da chuva e do perigo.</p>
+            <p>Esses grupos deixaram desenhos em rochas — chamamos isso de <strong>arte rupestre</strong>. É um jeito que eles tinham de contar histórias!</p>
+            <p>Hoje em dia, as pessoas também se mudam, mas por outros motivos: para ter uma <strong>vida melhor</strong>, mais segurança, liberdade ou um trabalho bom.</p>
+          </div>
+          
+          <div class="dialogo">
+            <div class="fala fala-tempinho">
+              <span class="fala-emoji">😜</span>
+              <div class="fala-balao">
+                <span class="fala-nome">Tempinho</span>
+                Cronos, então quem nasce em outro país e vem morar aqui... é o quê?
+              </div>
+            </div>
+            <div class="fala fala-cronos">
+              <span class="fala-emoji">🤓</span>
+              <div class="fala-balao">
+                <span class="fala-nome">Cronos</span>
+                É chamado de <strong>estrangeiro</strong>! E quando alguém se muda de um lugar para outro, dizemos que essa pessoa <strong>migrou</strong>. Decora essa palavra, viu!
+              </div>
+            </div>
+          </div>
+          
+          <div class="caixa-conceitos">
+            <h4>🔑 Palavras importantes desta parada:</h4>
+            <div class="conceito-item">
+              <strong>Migrar</strong>
+              <span>Mudar-se de um lugar para outro.</span>
+            </div>
+            <div class="conceito-item">
+              <strong>Estrangeiro</strong>
+              <span>Aquele que nasce em outro país.</span>
+            </div>
+            <div class="conceito-item">
+              <strong>Arte rupestre</strong>
+              <span>Desenhos feitos pelos primeiros humanos nas rochas das cavernas.</span>
+            </div>
+          </div>
+          
+          <div class="pergunta-titulo">🎯 Perguntas da Parada 1</div>
+          
+          <div class="pergunta" data-pergunta="1-1">
+            <div class="pergunta-texto">1) Por que os primeiros humanos andavam de um lugar para outro?</div>
+            <button class="opcao" onclick="responder(this, false, '1-1')">a) Porque gostavam de viajar de férias.</button>
+            <button class="opcao" onclick="responder(this, true, '1-1')">b) Para procurar comida (frutos e caça) e sobreviver.</button>
+            <button class="opcao" onclick="responder(this, false, '1-1')">c) Porque tinham carros antigos.</button>
+            <div class="feedback"></div>
+          </div>
+          
+          <div class="pergunta" data-pergunta="1-2">
+            <div class="pergunta-texto">2) O que é uma pessoa "estrangeira"?</div>
+            <button class="opcao" onclick="responder(this, false, '1-2')">a) Alguém muito estranho.</button>
+            <button class="opcao" onclick="responder(this, false, '1-2')">b) Alguém que mora no campo.</button>
+            <button class="opcao" onclick="responder(this, true, '1-2')">c) Alguém que nasce em outro país.</button>
+            <div class="feedback"></div>
+          </div>
+          
+          <div class="pergunta" data-pergunta="1-3">
+            <div class="pergunta-texto">3) Hoje, por que motivo uma pessoa pode se mudar (migrar)?</div>
+            <button class="opcao" onclick="responder(this, true, '1-3')">a) Para procurar trabalho, melhores condições de vida ou liberdade.</button>
+            <button class="opcao" onclick="responder(this, false, '1-3')">b) Apenas para morar em cavernas.</button>
+            <button class="opcao" onclick="responder(this, false, '1-3')">c) Para fugir dos amigos.</button>
+            <div class="feedback"></div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+    
+    <!-- BLOCO 2: Engenhos de Açúcar -->
+    <div class="bloco bloco-2" id="bloco2">
+      <div class="bloco-titulo" onclick="abrirBloco(2)">
+        <span>🏭 Parada 2 — Os Engenhos de Açúcar</span>
+        <span class="seta">▼</span>
+      </div>
+      <div class="bloco-conteudo">
+        <div class="bloco-conteudo-inner">
+          
+          <div class="parada-info">
+            <span class="ano-grande">📅 Ano 1530</span>
+            <span class="local">📍 Pernambuco (Nordeste do Brasil)</span>
+          </div>
+          
+          <div class="texto-aprender">
+            <p>A primeira grande riqueza do Brasil foi o <strong>açúcar</strong>! Os portugueses (que tinham colonizado o Brasil) começaram a plantar <strong>cana-de-açúcar</strong> aqui por volta de <strong>1530</strong>. O primeiro local foi São Vicente (em São Paulo), mas foi no <strong>Nordeste, principalmente em Pernambuco</strong>, que a produção de açúcar mais cresceu, por causa do solo bom e do clima quente.</p>
+            <p>O lugar onde se produzia o açúcar se chama <strong>engenho</strong>. Era uma grande fazenda no campo, com várias construções:</p>
+          </div>
+          
+          <div class="caixa-conceitos">
+            <h4>🏘️ Partes de um engenho:</h4>
+            <div class="conceito-item">
+              <strong>Casa-grande</strong>
+              <span>Casa enorme onde morava o dono do engenho (chamado <strong>Senhor de Engenho</strong>) e a família dele.</span>
+            </div>
+            <div class="conceito-item">
+              <strong>Senzala</strong>
+              <span>Local onde viviam as pessoas escravizadas. Era um espaço precário, sem higiene e sem conforto.</span>
+            </div>
+            <div class="conceito-item">
+              <strong>Moenda</strong>
+              <span>Máquina que moía a cana para extrair o caldo (chamado garapa), que depois virava açúcar.</span>
+            </div>
+            <div class="conceito-item">
+              <strong>Canavial</strong>
+              <span>Local onde a cana-de-açúcar era plantada.</span>
+            </div>
+            <div class="conceito-item">
+              <strong>Capela</strong>
+              <span>Pequena igreja dentro do engenho.</span>
+            </div>
+          </div>
+          
+          <div class="dialogo">
+            <div class="fala fala-tempinho">
+              <span class="fala-emoji">😜</span>
+              <div class="fala-balao">
+                <span class="fala-nome">Tempinho</span>
+                Cronos, então o engenho era tipo uma fazenda gigante? 🍬
+              </div>
+            </div>
+            <div class="fala fala-cronos">
+              <span class="fala-emoji">🤓</span>
+              <div class="fala-balao">
+                <span class="fala-nome">Cronos</span>
+                Isso! E como tudo acontecia no <strong>campo</strong>, dizemos que a sociedade do açúcar era uma <strong>sociedade rural</strong>. Anota essa: <em>rural = campo!</em>
+              </div>
+            </div>
+          </div>
+          
+          <div class="pergunta-titulo">🎯 Perguntas da Parada 2</div>
+          
+          <div class="pergunta" data-pergunta="2-1">
+            <div class="pergunta-texto">1) Qual era o nome do local onde se produzia açúcar no Brasil antigamente?</div>
+            <button class="opcao" onclick="responder(this, false, '2-1')">a) Fazenda de café</button>
+            <button class="opcao" onclick="responder(this, true, '2-1')">b) Engenho</button>
+            <button class="opcao" onclick="responder(this, false, '2-1')">c) Fábrica</button>
+            <div class="feedback"></div>
+          </div>
+          
+          <div class="pergunta" data-pergunta="2-2">
+            <div class="pergunta-texto">2) Na Casa-grande morava o senhor de engenho. Quem morava na senzala?</div>
+            <button class="opcao" onclick="responder(this, false, '2-2')">a) Os amigos do senhor.</button>
+            <button class="opcao" onclick="responder(this, true, '2-2')">b) As pessoas escravizadas.</button>
+            <button class="opcao" onclick="responder(this, false, '2-2')">c) Os imigrantes italianos.</button>
+            <div class="feedback"></div>
+          </div>
+          
+          <div class="pergunta" data-pergunta="2-3">
+            <div class="pergunta-texto">3) Para que servia a moenda dentro do engenho?</div>
+            <button class="opcao" onclick="responder(this, false, '2-3')">a) Para guardar o açúcar.</button>
+            <button class="opcao" onclick="responder(this, false, '2-3')">b) Para criar porcos.</button>
+            <button class="opcao" onclick="responder(this, true, '2-3')">c) Para moer a cana e extrair o caldo (líquido).</button>
+            <div class="feedback"></div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+    
+    <!-- BLOCO 3: Escravidão e Quilombos -->
+    <div class="bloco bloco-3" id="bloco3">
+      <div class="bloco-titulo" onclick="abrirBloco(3)">
+        <span>⛓️ Parada 3 — Da África para o Brasil e os Quilombos</span>
+        <span class="seta">▼</span>
+      </div>
+      <div class="bloco-conteudo">
+        <div class="bloco-conteudo-inner">
+          
+          <div class="parada-info">
+            <span class="ano-grande">📅 Séculos XVI a XIX</span>
+            <span class="local">📍 Atravessando o Oceano Atlântico</span>
+          </div>
+          
+          <div class="texto-aprender">
+            <p>Para fazer o açúcar, os colonizadores usaram o trabalho forçado de <strong>pessoas africanas escravizadas</strong>. Elas eram trazidas <strong>à força</strong> da África para o Brasil em navios chamados <strong>navios negreiros</strong>.</p>
+            <p>A viagem durava <strong>cerca de 2 meses</strong> atravessando o Oceano Atlântico. Era uma viagem muito difícil e desumana: ficavam acorrentados, sem espaço, e muitos adoeciam.</p>
+            <p>No Brasil, eles trabalhavam no engenho fazendo várias atividades pesadas: plantar e colher cana, moer, fazer açúcar. O trabalho era forçado, com pouca comida e muita violência.</p>
+            <p>Mas eles <strong>resistiram</strong>! Muitos fugiam e formavam comunidades secretas no meio do mato, chamadas <strong>quilombos</strong>. Lá conseguiam viver com mais liberdade, do seu próprio jeito.</p>
+          </div>
+          
+          <div class="dialogo">
+            <div class="fala fala-tempinho">
+              <span class="fala-emoji">😜</span>
+              <div class="fala-balao">
+                <span class="fala-nome">Tempinho</span>
+                Cronos... isso é muito triste. Por que faziam isso com eles? 😢
+              </div>
+            </div>
+            <div class="fala fala-cronos">
+              <span class="fala-emoji">🤓</span>
+              <div class="fala-balao">
+                <span class="fala-nome">Cronos</span>
+                É muito triste mesmo, Tempinho. Foi uma grande injustiça da história. Por isso é importante <strong>conhecer e lembrar</strong> dessas pessoas e da sua coragem. Os <strong>quilombos</strong> mostram que elas <strong>nunca aceitaram</strong> essa situação!
+              </div>
+            </div>
+          </div>
+          
+          <div class="caixa-conceitos">
+            <h4>🔑 Palavras importantes desta parada:</h4>
+            <div class="conceito-item">
+              <strong>Navios negreiros</strong>
+              <span>Navios que traziam à força os africanos da África para o Brasil.</span>
+            </div>
+            <div class="conceito-item">
+              <strong>Quilombos</strong>
+              <span>Comunidades formadas por pessoas escravizadas que conseguiam fugir, em busca de liberdade.</span>
+            </div>
+            <div class="conceito-item">
+              <strong>Resistência</strong>
+              <span>Palavra que define a luta das pessoas escravizadas contra a escravidão (revoltas, fugas, quilombos).</span>
+            </div>
+            <div class="conceito-item">
+              <strong>Desumano</strong>
+              <span>Que não tem humanidade; cruel. Era assim o trabalho na escravidão.</span>
+            </div>
+          </div>
+          
+          <div class="pergunta-titulo">🎯 Perguntas da Parada 3</div>
+          
+          <div class="pergunta" data-pergunta="3-1">
+            <div class="pergunta-texto">1) Como os africanos escravizados eram trazidos para o Brasil?</div>
+            <button class="opcao" onclick="responder(this, false, '3-1')">a) De avião, vindo da Europa.</button>
+            <button class="opcao" onclick="responder(this, true, '3-1')">b) À força, em navios chamados navios negreiros.</button>
+            <button class="opcao" onclick="responder(this, false, '3-1')">c) Por vontade própria, em barcos pequenos.</button>
+            <div class="feedback"></div>
+          </div>
+          
+          <div class="pergunta" data-pergunta="3-2">
+            <div class="pergunta-texto">2) O que eram os quilombos?</div>
+            <button class="opcao" onclick="responder(this, false, '3-2')">a) Fazendas dos senhores de engenho.</button>
+            <button class="opcao" onclick="responder(this, false, '3-2')">b) Cidades grandes com muitas lojas.</button>
+            <button class="opcao" onclick="responder(this, true, '3-2')">c) Comunidades formadas por pessoas que conseguiam fugir da escravidão.</button>
+            <div class="feedback"></div>
+          </div>
+          
+          <div class="pergunta" data-pergunta="3-3">
+            <div class="pergunta-texto">3) Qual palavra melhor define o que os quilombos representavam?</div>
+            <button class="opcao" onclick="responder(this, false, '3-3')">a) Aceitação</button>
+            <button class="opcao" onclick="responder(this, false, '3-3')">b) Negociação</button>
+            <button class="opcao" onclick="responder(this, true, '3-3')">c) Resistência</button>
+            <div class="feedback"></div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+    
+    <!-- BLOCO 4: Descoberta do Ouro -->
+    <div class="bloco bloco-4" id="bloco4">
+      <div class="bloco-titulo" onclick="abrirBloco(4)">
+        <span>⛏️ Parada 4 — A Descoberta do Ouro em Minas Gerais</span>
+        <span class="seta">▼</span>
+      </div>
+      <div class="bloco-conteudo">
+        <div class="bloco-conteudo-inner">
+          
+          <div class="parada-info">
+            <span class="ano-grande">📅 A partir de 1696</span>
+            <span class="local">📍 Minas Gerais</span>
+          </div>
+          
+          <div class="texto-aprender">
+            <p>Enquanto o Nordeste produzia açúcar, no <strong>interior do Brasil</strong> aconteceu uma grande novidade! Grupos de colonos chamados <strong>bandeirantes</strong> organizavam expedições (viagens) pelo interior, chamadas <strong>bandeiras</strong>. Eles procuravam <strong>ouro, pedras preciosas</strong> e também aprisionavam indígenas.</p>
+            <p>Foi assim que, na região de <strong>Minas Gerais</strong>, descobriram ouro e diamantes! Por isso a região recebeu esse nome.</p>
+            <p>A partir de <strong>1696</strong>, milhares de pessoas se mudaram para Minas Gerais e várias <strong>vilas</strong> foram fundadas. Para encontrar o ouro, usavam uma técnica chamada <strong>bateia</strong> — uma tigela em que se lavava a areia dos rios para separar o ouro.</p>
+            <p>A sociedade que se formou em Minas Gerais era <strong>urbana</strong> (de cidade), diferente da sociedade do açúcar que era rural. Tinha donos de mina, comerciantes, médicos, advogados e também trabalhadores escravizados.</p>
+            <p><strong>Mas atenção:</strong> a mineração causou muito impacto no meio ambiente! Os rios foram contaminados por mercúrio e muitas matas foram destruídas.</p>
+          </div>
+          
+          <div class="dialogo">
+            <div class="fala fala-tempinho">
+              <span class="fala-emoji">😜</span>
+              <div class="fala-balao">
+                <span class="fala-nome">Tempinho</span>
+                Eba! Ouro! Posso pegar um pouquinho? 🤑
+              </div>
+            </div>
+            <div class="fala fala-cronos">
+              <span class="fala-emoji">🤓</span>
+              <div class="fala-balao">
+                <span class="fala-nome">Cronos</span>
+                Hehe, NÃO, Tempinho! 😂 Lembre-se: nada de mudar a história. Só observamos! E aprende essas palavras: <strong>bandeirantes</strong>, <strong>bateia</strong> e <strong>Minas Gerais</strong>. Vão cair na prova!
+              </div>
+            </div>
+          </div>
+          
+          <div class="caixa-conceitos">
+            <h4>🔑 Palavras importantes desta parada:</h4>
+            <div class="conceito-item">
+              <strong>Bandeirantes</strong>
+              <span>Exploradores que organizavam expedições pelo interior do Brasil procurando ouro e pedras preciosas.</span>
+            </div>
+            <div class="conceito-item">
+              <strong>Bandeiras</strong>
+              <span>Nome das expedições (viagens) feitas pelos bandeirantes.</span>
+            </div>
+            <div class="conceito-item">
+              <strong>Bateia</strong>
+              <span>Instrumento (uma espécie de tigela) usado para separar o ouro da areia dos rios.</span>
+            </div>
+            <div class="conceito-item">
+              <strong>Vila</strong>
+              <span>Pequena cidade. Em Minas Gerais, várias vilas surgiram a partir de 1696.</span>
+            </div>
+          </div>
+          
+          <div class="pergunta-titulo">🎯 Perguntas da Parada 4</div>
+          
+          <div class="pergunta" data-pergunta="4-1">
+            <div class="pergunta-texto">1) Qual riqueza foi descoberta em Minas Gerais logo após o ciclo do açúcar?</div>
+            <button class="opcao" onclick="responder(this, false, '4-1')">a) Petróleo</button>
+            <button class="opcao" onclick="responder(this, true, '4-1')">b) Ouro</button>
+            <button class="opcao" onclick="responder(this, false, '4-1')">c) Café</button>
+            <div class="feedback"></div>
+          </div>
+          
+          <div class="pergunta" data-pergunta="4-2">
+            <div class="pergunta-texto">2) Como se chama o instrumento usado para separar o ouro da areia dos rios?</div>
+            <button class="opcao" onclick="responder(this, false, '4-2')">a) Moenda</button>
+            <button class="opcao" onclick="responder(this, false, '4-2')">b) Senzala</button>
+            <button class="opcao" onclick="responder(this, true, '4-2')">c) Bateia</button>
+            <div class="feedback"></div>
+          </div>
+          
+          <div class="pergunta" data-pergunta="4-3">
+            <div class="pergunta-texto">3) Quem eram os bandeirantes?</div>
+            <button class="opcao" onclick="responder(this, false, '4-3')">a) Imigrantes que vieram da Europa.</button>
+            <button class="opcao" onclick="responder(this, true, '4-3')">b) Exploradores que procuravam ouro e pedras preciosas no interior.</button>
+            <button class="opcao" onclick="responder(this, false, '4-3')">c) Senhores de engenho do Nordeste.</button>
+            <div class="feedback"></div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+    
+    <!-- BLOCO 5: Fazendas de Café -->
+    <div class="bloco bloco-5" id="bloco5">
+      <div class="bloco-titulo" onclick="abrirBloco(5)">
+        <span>☕ Parada 5 — As Fazendas de Café (o "Ouro Verde")</span>
+        <span class="seta">▼</span>
+      </div>
+      <div class="bloco-conteudo">
+        <div class="bloco-conteudo-inner">
+          
+          <div class="parada-info">
+            <span class="ano-grande">📅 A partir de 1830</span>
+            <span class="local">📍 Vale do Paraíba (RJ e SP)</span>
+          </div>
+          
+          <div class="texto-aprender">
+            <p>Depois que o ouro acabou (por volta de 1780), o Brasil descobriu uma nova riqueza: o <strong>café</strong>! Ele era tão importante e dava tanto dinheiro que foi apelidado de <strong>"Ouro Verde"</strong>.</p>
+            <p>A partir de <strong>1830</strong>, o café virou o principal produto de exportação do Brasil, vendido para a Europa e para os Estados Unidos. As fazendas ficavam principalmente no <strong>Vale do Rio Paraíba do Sul</strong>, entre as províncias do <strong>Rio de Janeiro</strong> e de <strong>São Paulo</strong>.</p>
+            <p>Para levar o café das fazendas até os portos rapidamente, foram construídas as <strong>ferrovias (trens)</strong>! Isso mudou tudo — o transporte ficou muito mais rápido.</p>
+            <p>A sociedade do café era parecida com a do açúcar: era <strong>rural</strong>, do campo. Tinha a casa do proprietário, a senzala (sim, ainda havia escravidão), a lavoura de café, o terreiro para secar o café, e tulhas para armazenar.</p>
+          </div>
+          
+          <div class="dialogo">
+            <div class="fala fala-tempinho">
+              <span class="fala-emoji">😜</span>
+              <div class="fala-balao">
+                <span class="fala-nome">Tempinho</span>
+                Trem! Trem! 🚂 Choo-choo! Posso andar?
+              </div>
+            </div>
+            <div class="fala fala-cronos">
+              <span class="fala-emoji">🤓</span>
+              <div class="fala-balao">
+                <span class="fala-nome">Cronos</span>
+                Hehe, Tempinho! Esse trem é importante: as <strong>ferrovias</strong> foram criadas para levar o café das fazendas até os portos. Decora: <strong>ferrovias = trens = transporte do café!</strong>
+              </div>
+            </div>
+          </div>
+          
+          <div class="caixa-conceitos">
+            <h4>🔑 Palavras importantes desta parada:</h4>
+            <div class="conceito-item">
+              <strong>Café (Ouro Verde)</strong>
+              <span>Principal produto exportado pelo Brasil a partir de 1830.</span>
+            </div>
+            <div class="conceito-item">
+              <strong>Ferrovias (trens)</strong>
+              <span>Meio de transporte criado para levar o café das fazendas até os portos.</span>
+            </div>
+            <div class="conceito-item">
+              <strong>Província</strong>
+              <span>Subdivisão do território brasileiro na época em que o Brasil era um império.</span>
+            </div>
+            <div class="conceito-item">
+              <strong>Vale do Paraíba</strong>
+              <span>Região entre Rio de Janeiro e São Paulo onde se concentraram as fazendas de café.</span>
+            </div>
+          </div>
+          
+          <div class="pergunta-titulo">🎯 Perguntas da Parada 5</div>
+          
+          <div class="pergunta" data-pergunta="5-1">
+            <div class="pergunta-texto">1) Qual produto agrícola ficou conhecido como "Ouro Verde" do Brasil?</div>
+            <button class="opcao" onclick="responder(this, false, '5-1')">a) Cana-de-açúcar</button>
+            <button class="opcao" onclick="responder(this, true, '5-1')">b) Café</button>
+            <button class="opcao" onclick="responder(this, false, '5-1')">c) Algodão</button>
+            <div class="feedback"></div>
+          </div>
+          
+          <div class="pergunta" data-pergunta="5-2">
+            <div class="pergunta-texto">2) Qual meio de transporte levava o café das fazendas até os portos?</div>
+            <button class="opcao" onclick="responder(this, true, '5-2')">a) Ferrovias (trens)</button>
+            <button class="opcao" onclick="responder(this, false, '5-2')">b) Aviões</button>
+            <button class="opcao" onclick="responder(this, false, '5-2')">c) Carros</button>
+            <div class="feedback"></div>
+          </div>
+          
+          <div class="pergunta" data-pergunta="5-3">
+            <div class="pergunta-texto">3) As fazendas de café ficavam principalmente entre quais regiões?</div>
+            <button class="opcao" onclick="responder(this, false, '5-3')">a) Bahia e Pernambuco</button>
+            <button class="opcao" onclick="responder(this, true, '5-3')">b) Rio de Janeiro e São Paulo (Vale do Paraíba)</button>
+            <button class="opcao" onclick="responder(this, false, '5-3')">c) Amazonas e Pará</button>
+            <div class="feedback"></div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+    
+    <!-- BLOCO 6: Imigrantes e Fábricas -->
+    <div class="bloco bloco-6" id="bloco6">
+      <div class="bloco-titulo" onclick="abrirBloco(6)">
+        <span>🌍 Parada 6 — A Chegada dos Imigrantes e as Primeiras Fábricas</span>
+        <span class="seta">▼</span>
+      </div>
+      <div class="bloco-conteudo">
+        <div class="bloco-conteudo-inner">
+          
+          <div class="parada-info">
+            <span class="ano-grande">📅 1850 a 1888</span>
+            <span class="local">📍 São Paulo e Rio de Janeiro</span>
+          </div>
+          
+          <div class="texto-aprender">
+            <p>Em <strong>1850</strong>, foi proibido continuar trazendo africanos escravizados para o Brasil. Os fazendeiros de café precisavam de muitos trabalhadores e começaram a chamar <strong>imigrantes</strong> de outros países para trabalhar nas lavouras.</p>
+            <p>Chegaram pessoas vindas da <strong>Itália, Alemanha, Espanha, Portugal, Líbano, Síria, Turquia e Japão</strong>! Eles moravam nas fazendas em casas chamadas <strong>colônias</strong>.</p>
+            <p>Em <strong>1888</strong>, finalmente foi declarado o <strong>fim da escravidão</strong> no Brasil! 🎉</p>
+            <p>Mas as condições de trabalho nas fazendas eram ruins, e muitos imigrantes saíram do campo e foram para as <strong>cidades</strong> trabalhar nas <strong>fábricas</strong>, no comércio e em oficinas. As primeiras fábricas surgiram após <strong>1850</strong> em <strong>São Paulo e Rio de Janeiro</strong>.</p>
+            <p>Como havia poucos lugares para morar, muitos passaram a viver em casas coletivas chamadas <strong>cortiços</strong> — prédios antigos divididos em muitos quartinhos pequenos.</p>
+          </div>
+          
+          <div class="dialogo">
+            <div class="fala fala-tempinho">
+              <span class="fala-emoji">😜</span>
+              <div class="fala-balao">
+                <span class="fala-nome">Tempinho</span>
+                Italiano! Alemão! Japonês! Caramba, Cronos, foi um monte de gente diferente que veio pra cá!
+              </div>
+            </div>
+            <div class="fala fala-cronos">
+              <span class="fala-emoji">🤓</span>
+              <div class="fala-balao">
+                <span class="fala-nome">Cronos</span>
+                Isso mesmo, Tempinho! Por isso o Brasil é um país tão <strong>diverso</strong>, com tantas culturas misturadas. E em <strong>1888</strong>, finalmente acabou a escravidão. Data importantíssima!
+              </div>
+            </div>
+          </div>
+          
+          <div class="caixa-conceitos">
+            <h4>🔑 Palavras importantes desta parada:</h4>
+            <div class="conceito-item">
+              <strong>Imigrantes</strong>
+              <span>Pessoas vindas de outros países para trabalhar e viver no Brasil.</span>
+            </div>
+            <div class="conceito-item">
+              <strong>Colônias</strong>
+              <span>Conjuntos de casas construídos nas fazendas para abrigar os imigrantes.</span>
+            </div>
+            <div class="conceito-item">
+              <strong>1888</strong>
+              <span>Ano do fim da escravidão no Brasil.</span>
+            </div>
+            <div class="conceito-item">
+              <strong>Cortiços</strong>
+              <span>Prédios antigos e degradados, divididos em quartos pequenos alugados para famílias pobres na cidade.</span>
+            </div>
+            <div class="conceito-item">
+              <strong>Fábricas</strong>
+              <span>Surgiram após 1850 em SP e RJ. Produziam alimentos, tecidos, cerâmica, velas, sabão.</span>
+            </div>
+          </div>
+          
+          <div class="pergunta-titulo">🎯 Perguntas da Parada 6</div>
+          
+          <div class="pergunta" data-pergunta="6-1">
+            <div class="pergunta-texto">1) Por que os imigrantes europeus vieram trabalhar nas fazendas de café?</div>
+            <button class="opcao" onclick="responder(this, true, '6-1')">a) Porque o Brasil incentivou a entrada de estrangeiros após o fim do tráfico de escravizados.</button>
+            <button class="opcao" onclick="responder(this, false, '6-1')">b) Porque foram obrigados a vir.</button>
+            <button class="opcao" onclick="responder(this, false, '6-1')">c) Porque queriam plantar cana-de-açúcar.</button>
+            <div class="feedback"></div>
+          </div>
+          
+          <div class="pergunta" data-pergunta="6-2">
+            <div class="pergunta-texto">2) Em que ano foi declarado o fim da escravidão no Brasil?</div>
+            <button class="opcao" onclick="responder(this, false, '6-2')">a) 1530</button>
+            <button class="opcao" onclick="responder(this, false, '6-2')">b) 1696</button>
+            <button class="opcao" onclick="responder(this, true, '6-2')">c) 1888</button>
+            <div class="feedback"></div>
+          </div>
+          
+          <div class="pergunta" data-pergunta="6-3">
+            <div class="pergunta-texto">3) O que era um cortiço?</div>
+            <button class="opcao" onclick="responder(this, false, '6-3')">a) Uma fazenda de café no campo.</button>
+            <button class="opcao" onclick="responder(this, true, '6-3')">b) Uma habitação coletiva da cidade, com vários quartinhos pequenos.</button>
+            <button class="opcao" onclick="responder(this, false, '6-3')">c) Um navio que trazia imigrantes.</button>
+            <div class="feedback"></div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+    
+    <!-- BLOCO REVISÃO -->
+    <div class="bloco bloco-revisao" id="bloco7">
+      <div class="bloco-titulo" onclick="abrirBloco(7)">
+        <span>🏆 Parada Final — Revisão da Viagem (todos os temas)</span>
+        <span class="seta">▼</span>
+      </div>
+      <div class="bloco-conteudo">
+        <div class="bloco-conteudo-inner">
+          
+          <div class="parada-info">
+            <span class="ano-grande">🌟 Volta para o Presente</span>
+            <span class="local">📍 Revisão Geral da Missão</span>
+          </div>
+          
+          <div class="dialogo">
+            <div class="fala fala-cronos">
+              <span class="fala-emoji">🤓</span>
+              <div class="fala-balao">
+                <span class="fala-nome">Cronos</span>
+                Viajante, agora vamos revisar TUDO antes de voltar! Misturando todos os temas!
+              </div>
+            </div>
+            <div class="fala fala-tempinho">
+              <span class="fala-emoji">😜</span>
+              <div class="fala-balao">
+                <span class="fala-nome">Tempinho</span>
+                Última parada antes de aterrissar de volta no presente! 🚀
+              </div>
+            </div>
+          </div>
+          
+          <div class="pergunta-titulo">🎯 Perguntas Finais</div>
+          
+          <div class="pergunta" data-pergunta="7-1">
+            <div class="pergunta-texto">1) Coloque na ordem correta os ciclos econômicos do Brasil:</div>
+            <button class="opcao" onclick="responder(this, false, '7-1')">a) Café → Ouro → Açúcar</button>
+            <button class="opcao" onclick="responder(this, true, '7-1')">b) Açúcar → Ouro → Café</button>
+            <button class="opcao" onclick="responder(this, false, '7-1')">c) Ouro → Café → Açúcar</button>
+            <div class="feedback"></div>
+          </div>
+          
+          <div class="pergunta" data-pergunta="7-2">
+            <div class="pergunta-texto">2) Qual sociedade era URBANA (de cidade), diferente das outras que eram rurais?</div>
+            <button class="opcao" onclick="responder(this, false, '7-2')">a) A do açúcar</button>
+            <button class="opcao" onclick="responder(this, true, '7-2')">b) A do ouro (em Minas Gerais)</button>
+            <button class="opcao" onclick="responder(this, false, '7-2')">c) A do café</button>
+            <div class="feedback"></div>
+          </div>
+          
+          <div class="pergunta" data-pergunta="7-3">
+            <div class="pergunta-texto">3) Qual era a mão de obra usada nos engenhos de açúcar, nas minas de ouro E nas fazendas de café?</div>
+            <button class="opcao" onclick="responder(this, true, '7-3')">a) Trabalho de pessoas escravizadas africanas.</button>
+            <button class="opcao" onclick="responder(this, false, '7-3')">b) Apenas trabalho de imigrantes.</button>
+            <button class="opcao" onclick="responder(this, false, '7-3')">c) Apenas indígenas.</button>
+            <div class="feedback"></div>
+          </div>
+          
+          <div class="pergunta" data-pergunta="7-4">
+            <div class="pergunta-texto">4) Relacione corretamente:</div>
+            <button class="opcao" onclick="responder(this, false, '7-4')">a) Bateia → café | Ferrovia → ouro | Moenda → açúcar</button>
+            <button class="opcao" onclick="responder(this, true, '7-4')">b) Bateia → ouro | Ferrovia → café | Moenda → açúcar</button>
+            <button class="opcao" onclick="responder(this, false, '7-4')">c) Bateia → açúcar | Ferrovia → ouro | Moenda → café</button>
+            <div class="feedback"></div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+    
+    <button class="btn-jogar" onclick="trocarAba('resumo')">
+      ⭐ Próximo passo: Diário de Bordo! ⭐
+    </button>
+    
+  </div>
+  
+  <!-- ABA 2: DIÁRIO DE BORDO (RESUMO) -->
+  <div class="tab-content" id="resumo">
+    
+    <div class="diario-header">
+      <h2>📓 Diário de Bordo da Viagem</h2>
+      <p style="color: #666; font-style: italic;">Tudo que aprendemos pelas paradas do tempo!</p>
+    </div>
+    
+    <div class="dialogo" style="margin-bottom: 25px;">
+      <div class="fala fala-cronos">
+        <span class="fala-emoji">🤓</span>
+        <div class="fala-balao">
+          <span class="fala-nome">Cronos</span>
+          Anotei tudo bem direitinho no diário! Vamos revisar antes da prova de <strong>21/05 (quinta)</strong>?
+        </div>
+      </div>
+      <div class="fala fala-tempinho">
+        <span class="fala-emoji">😜</span>
+        <div class="fala-balao">
+          <span class="fala-nome">Tempinho</span>
+          Bora! 🚀 Linha do tempo, palavras importantes, dicas e quiz relâmpago!
+        </div>
+      </div>
+    </div>
+    
+    <!-- LINHA DO TEMPO -->
+    <div class="linha-tempo">
+      <h3>⏰ Linha do Tempo da Viagem</h3>
+      
+      <div class="tempo-item">
+        <span class="tempo-data">📅 1500</span>
+        <div class="tempo-evento"><strong>Início:</strong> os portugueses chegam ao Brasil e começa a colonização.</div>
+      </div>
+      
+      <div class="tempo-item">
+        <span class="tempo-data">📅 1530</span>
+        <div class="tempo-evento"><strong>Engenhos de açúcar:</strong> começa a produção em São Vicente, depois Pernambuco vira o grande centro.</div>
+      </div>
+      
+      <div class="tempo-item">
+        <span class="tempo-data">📅 Séculos XVI-XIX</span>
+        <div class="tempo-evento"><strong>Escravidão:</strong> africanos trazidos à força em navios negreiros. Surgem os quilombos.</div>
+      </div>
+      
+      <div class="tempo-item">
+        <span class="tempo-data">📅 1696</span>
+        <div class="tempo-evento"><strong>Vilas em Minas Gerais:</strong> com a descoberta do ouro pelos bandeirantes, várias vilas são fundadas.</div>
+      </div>
+      
+      <div class="tempo-item">
+        <span class="tempo-data">📅 1780</span>
+        <div class="tempo-evento"><strong>Declínio do ouro:</strong> as minas começam a se esgotar.</div>
+      </div>
+      
+      <div class="tempo-item">
+        <span class="tempo-data">📅 1830</span>
+        <div class="tempo-evento"><strong>Fazendas de café:</strong> o "Ouro Verde" vira o principal produto exportado.</div>
+      </div>
+      
+      <div class="tempo-item">
+        <span class="tempo-data">📅 1850</span>
+        <div class="tempo-evento"><strong>Imigrantes e fábricas:</strong> proibição do tráfico de escravizados. Chegam imigrantes europeus. Surgem as primeiras fábricas em SP e RJ.</div>
+      </div>
+      
+      <div class="tempo-item">
+        <span class="tempo-data">📅 1888</span>
+        <div class="tempo-evento"><strong>Fim da escravidão</strong> no Brasil! 🎉</div>
+      </div>
+    </div>
+    
+    <!-- GRADE DE PALAVRAS -->
+    <h3 style="text-align: center; color: #6c5ce7; margin-bottom: 15px; font-size: 1.4em;">
+      📚 Palavras Importantes para Decorar
+    </h3>
+    
+    <div class="grade-palavras">
+      <div class="palavra-card">
+        <strong>🏭 Engenho</strong>
+        <span>Local onde se produzia o açúcar; era no campo.</span>
+      </div>
+      <div class="palavra-card">
+        <strong>🏛️ Casa-grande</strong>
+        <span>Onde morava o senhor de engenho e a família.</span>
+      </div>
+      <div class="palavra-card">
+        <strong>🏚️ Senzala</strong>
+        <span>Onde viviam as pessoas escravizadas.</span>
+      </div>
+      <div class="palavra-card">
+        <strong>⚙️ Moenda</strong>
+        <span>Máquina que moía a cana para extrair o caldo.</span>
+      </div>
+      <div class="palavra-card">
+        <strong>👑 Senhor de Engenho</strong>
+        <span>Dono da terra e de tudo que havia nela.</span>
+      </div>
+      <div class="palavra-card">
+        <strong>⚓ Navio Negreiro</strong>
+        <span>Navio que trazia à força os africanos para o Brasil.</span>
+      </div>
+      <div class="palavra-card">
+        <strong>🏃 Quilombos</strong>
+        <span>Comunidades de pessoas que fugiam da escravidão.</span>
+      </div>
+      <div class="palavra-card">
+        <strong>💪 Resistência</strong>
+        <span>Luta das pessoas escravizadas contra a opressão.</span>
+      </div>
+      <div class="palavra-card">
+        <strong>🗺️ Bandeirantes</strong>
+        <span>Exploradores que iam pelo interior do Brasil em busca de ouro.</span>
+      </div>
+      <div class="palavra-card">
+        <strong>🚩 Bandeiras</strong>
+        <span>As expedições (viagens) feitas pelos bandeirantes.</span>
+      </div>
+      <div class="palavra-card">
+        <strong>🥣 Bateia</strong>
+        <span>Tigela usada para separar o ouro da areia dos rios.</span>
+      </div>
+      <div class="palavra-card">
+        <strong>⛏️ Minas Gerais</strong>
+        <span>Região onde foi descoberto o ouro e nasceram várias vilas.</span>
+      </div>
+      <div class="palavra-card">
+        <strong>☕ Ouro Verde</strong>
+        <span>Apelido do café, principal produto a partir de 1830.</span>
+      </div>
+      <div class="palavra-card">
+        <strong>🚂 Ferrovias</strong>
+        <span>Os trens, criados para transportar o café até os portos.</span>
+      </div>
+      <div class="palavra-card">
+        <strong>🌍 Imigrantes</strong>
+        <span>Estrangeiros que vieram trabalhar nas fazendas de café.</span>
+      </div>
+      <div class="palavra-card">
+        <strong>🏘️ Colônias</strong>
+        <span>Casas das fazendas onde moravam os imigrantes.</span>
+      </div>
+      <div class="palavra-card">
+        <strong>🏚️ Cortiços</strong>
+        <span>Casas coletivas com quartinhos, onde moravam os pobres na cidade.</span>
+      </div>
+      <div class="palavra-card">
+        <strong>🏭 Fábricas</strong>
+        <span>Surgiram após 1850 em SP e RJ. Produziam tecidos, alimentos, sabão.</span>
+      </div>
+      <div class="palavra-card">
+        <strong>🗺️ Província</strong>
+        <span>Subdivisão do Brasil quando era um império.</span>
+      </div>
+      <div class="palavra-card">
+        <strong>✈️ Migrar</strong>
+        <span>Mudar-se de um lugar para outro.</span>
+      </div>
+    </div>
+    
+    <!-- DICAS DE PROVA -->
+    <div class="caixa-dicas">
+      <h3>💡 Dicas Especiais Para a Prova</h3>
+      
+      <div class="dica-item">
+        <strong>📅 Datas para decorar:</strong><br>
+        • <strong>1530</strong> → começo dos engenhos de açúcar<br>
+        • <strong>1696</strong> → fundação das vilas em Minas Gerais (ouro)<br>
+        • <strong>1830</strong> → começo das fazendas de café<br>
+        • <strong>1850</strong> → chegada dos imigrantes e primeiras fábricas<br>
+        • <strong>1888</strong> → FIM DA ESCRAVIDÃO 🎉
+      </div>
+      
+      <div class="dica-item">
+        <strong>🏞️ Rural ou Urbana?</strong><br>
+        • Sociedade do <strong>açúcar</strong> = <strong>RURAL</strong> (campo)<br>
+        • Sociedade do <strong>ouro</strong> = <strong>URBANA</strong> (cidade — vilas em Minas Gerais)<br>
+        • Sociedade do <strong>café</strong> = <strong>RURAL</strong> (campo)<br>
+        • Sociedade das <strong>fábricas</strong> = <strong>URBANA</strong> (cidade)
+      </div>
+      
+      <div class="dica-item">
+        <strong>🔑 Frases para decorar:</strong><br>
+        • "Engenho era o lugar onde se fazia açúcar antigamente."<br>
+        • "Bandeirantes eram exploradores que procuravam ouro."<br>
+        • "Quilombos eram comunidades formadas por pessoas que fugiam da escravidão."<br>
+        • "Café foi chamado de Ouro Verde."<br>
+        • "Ferrovias (trens) levavam o café até os portos."
+      </div>
+      
+      <div class="dica-item">
+        <strong>🌍 De onde vieram os imigrantes?</strong><br>
+        Itália, Alemanha, Espanha, Portugal, Líbano, Síria, Turquia, Japão.
+      </div>
+    </div>
+    
+    <!-- MINI-QUIZ -->
+    <div class="mini-quiz">
+      <h3>⚡ Mini-Quiz Relâmpago — Clique para ver a resposta!</h3>
+      
+      <div class="quiz-pergunta" onclick="this.classList.toggle('show')">
+        ❓ <strong>Onde se produzia açúcar antigamente?</strong>
+        <div class="resposta">✅ No engenho!</div>
+      </div>
+      
+      <div class="quiz-pergunta" onclick="this.classList.toggle('show')">
+        ❓ <strong>Quem morava na Casa-grande?</strong>
+        <div class="resposta">✅ O senhor de engenho e a família dele.</div>
+      </div>
+      
+      <div class="quiz-pergunta" onclick="this.classList.toggle('show')">
+        ❓ <strong>Para que servia a moenda?</strong>
+        <div class="resposta">✅ Para moer a cana e extrair o caldo (líquido).</div>
+      </div>
+      
+      <div class="quiz-pergunta" onclick="this.classList.toggle('show')">
+        ❓ <strong>Como os africanos chegavam ao Brasil?</strong>
+        <div class="resposta">✅ À força, em navios chamados navios negreiros.</div>
+      </div>
+      
+      <div class="quiz-pergunta" onclick="this.classList.toggle('show')">
+        ❓ <strong>O que eram os quilombos?</strong>
+        <div class="resposta">✅ Comunidades formadas por pessoas que fugiam da escravidão em busca de liberdade.</div>
+      </div>
+      
+      <div class="quiz-pergunta" onclick="this.classList.toggle('show')">
+        ❓ <strong>Qual riqueza foi descoberta em Minas Gerais?</strong>
+        <div class="resposta">✅ Ouro!</div>
+      </div>
+      
+      <div class="quiz-pergunta" onclick="this.classList.toggle('show')">
+        ❓ <strong>Qual instrumento separava o ouro da areia?</strong>
+        <div class="resposta">✅ A bateia!</div>
+      </div>
+      
+      <div class="quiz-pergunta" onclick="this.classList.toggle('show')">
+        ❓ <strong>Quem eram os bandeirantes?</strong>
+        <div class="resposta">✅ Exploradores que procuravam ouro e pedras preciosas no interior do Brasil.</div>
+      </div>
+      
+      <div class="quiz-pergunta" onclick="this.classList.toggle('show')">
+        ❓ <strong>Qual produto foi apelidado de "Ouro Verde"?</strong>
+        <div class="resposta">✅ O café!</div>
+      </div>
+      
+      <div class="quiz-pergunta" onclick="this.classList.toggle('show')">
+        ❓ <strong>Qual transporte levava o café para os portos?</strong>
+        <div class="resposta">✅ Ferrovias (trens)!</div>
+      </div>
+      
+      <div class="quiz-pergunta" onclick="this.classList.toggle('show')">
+        ❓ <strong>Por que vieram os imigrantes europeus?</strong>
+        <div class="resposta">✅ Porque o Brasil incentivou a entrada de estrangeiros para trabalhar nas fazendas, depois do fim do tráfico de escravizados.</div>
+      </div>
+      
+      <div class="quiz-pergunta" onclick="this.classList.toggle('show')">
+        ❓ <strong>Em que ano acabou a escravidão no Brasil?</strong>
+        <div class="resposta">✅ Em 1888!</div>
+      </div>
+    </div>
+    
+    <button class="btn-jogar" onclick="trocarAba('jogo')">
+      🎮 Quero jogar Verdadeiro ou Falso! 🎮
+    </button>
+    
+  </div>
+  
+  <!-- ABA 3: JOGO V/F (Teste de Memória) -->
+  <div class="tab-content" id="jogo">
+    
+    <div class="diario-header">
+      <h2>🎮 Teste de Memória da Viagem</h2>
+      <p style="color: #666; font-style: italic;">Verdadeiro ou Falso — 12 frases por rodada!</p>
+    </div>
+    
+    <div class="dialogo" style="margin-bottom: 20px;">
+      <div class="fala fala-tempinho">
+        <span class="fala-emoji">😜</span>
+        <div class="fala-balao">
+          <span class="fala-nome">Tempinho</span>
+          Você lembra de tudo que vimos na viagem? Vou te testar! 😎
+        </div>
+      </div>
+      <div class="fala fala-cronos">
+        <span class="fala-emoji">🤓</span>
+        <div class="fala-balao">
+          <span class="fala-nome">Cronos</span>
+          A cada rodada são sorteadas 12 frases das 18 do banco. Clique em <strong>VERDADEIRO</strong> ou <strong>FALSO</strong>!
+        </div>
+      </div>
+    </div>
+    
+    <div class="jogo-container">
+      
+      <div class="jogo-info">
+        <strong id="jogoStatus">Pergunta 1 de 12</strong> · Acertos: <strong id="jogoAcertos">0</strong>
+      </div>
+      
+      <div class="jogo-card" id="jogoCard">
+        <div class="jogo-pergunta" id="jogoPergunta">Carregando...</div>
+        <div class="jogo-botoes">
+          <button class="btn-vf btn-v" onclick="responderJogo(true)">✅ VERDADEIRO</button>
+          <button class="btn-vf btn-f" onclick="responderJogo(false)">❌ FALSO</button>
+        </div>
+        <div class="jogo-feedback" id="jogoFeedback"></div>
+        <div style="text-align: center;">
+          <button class="btn-proxima" id="btnProxima" style="display:none;" onclick="proximaPergunta()">Próxima ➡️</button>
+        </div>
+      </div>
+      
+      <div class="resultado-jogo" id="resultadoJogo" style="display:none;">
+        <h3>🎉 Fim da rodada!</h3>
+        <div class="resultado-estrelas" id="resultadoEstrelas"></div>
+        <div id="resultadoMsg"></div>
+        <button class="btn-reiniciar" onclick="iniciarJogo()">🔁 Jogar de Novo</button>
+      </div>
+      
+    </div>
+    
+  </div>
+  
+  
+  <!-- ABA 4: SIMULADO (Prova Final do Viajante) -->
+  <div class="tab-content" id="simulado">
+    
+    <div class="diario-header">
+      <h2>🎯 Prova Final do Viajante</h2>
+      <p style="color: #666; font-style: italic;">15 desafios para se tornar Viajante Oficial do Tempo!</p>
+    </div>
+    
+    <div class="aviso-simulado">
+      <strong>⚠️ ATENÇÃO, VIAJANTE! ⚠️</strong><br>
+      Responda <strong>TODAS as 15 questões</strong> para liberar o gabarito comentado!<br>
+      <em>Algumas são médias, outras são difíceis — pense bem antes de responder!</em>
+    </div>
+    
+    <div class="dialogo" style="margin-bottom: 20px;">
+      <div class="fala fala-cronos">
+        <span class="fala-emoji">🤓</span>
+        <div class="fala-balao">
+          <span class="fala-nome">Cronos</span>
+          Esse é o desafio final! Misturei questões parecidas com as que podem cair na prova. Capricha!
+        </div>
+      </div>
+      <div class="fala fala-tempinho">
+        <span class="fala-emoji">😜</span>
+        <div class="fala-balao">
+          <span class="fala-nome">Tempinho</span>
+          Eu sei que você consegue! Boa sorte! 🚀
+        </div>
+      </div>
+    </div>
+    
+    <form id="formSimulado">
+      
+      <!-- Q1 - Médio -->
+      <div class="simulado-questao">
+        <h4>Questão 1)</h4>
+        <p>O Cronos contou que a primeira grande riqueza produzida no Brasil veio do campo, por volta de 1530, com os colonizadores portugueses. Estamos falando da produção de:</p>
+        <div class="sim-opcoes">
+          <label><input type="radio" name="q1" value="a"> a) Café</label>
+          <label><input type="radio" name="q1" value="b"> b) Ouro</label>
+          <label><input type="radio" name="q1" value="c"> c) Açúcar</label>
+          <label><input type="radio" name="q1" value="d"> d) Algodão</label>
+        </div>
+        <div class="questao-respondida" id="r1"></div>
+      </div>
+      
+      <!-- Q2 - Médio -->
+      <div class="simulado-questao">
+        <h4>Questão 2)</h4>
+        <p>O primeiro local escolhido pelos portugueses para a produção de açúcar foi São Vicente. No entanto, foi em outra região que a produção mais prosperou. Qual?</p>
+        <div class="sim-opcoes">
+          <label><input type="radio" name="q2" value="a"> a) Minas Gerais</label>
+          <label><input type="radio" name="q2" value="b"> b) Pernambuco</label>
+          <label><input type="radio" name="q2" value="c"> c) Rio de Janeiro</label>
+          <label><input type="radio" name="q2" value="d"> d) Amazonas</label>
+        </div>
+        <div class="questao-respondida" id="r2"></div>
+      </div>
+      
+      <!-- Q3 - Médio -->
+      <div class="simulado-questao">
+        <h4>Questão 3)</h4>
+        <p>O Tempinho está confuso e perguntou: "Cronos, no engenho, qual era a função de cada lugar?". Qual relação está CORRETA?</p>
+        <div class="sim-opcoes">
+          <label><input type="radio" name="q3" value="a"> a) Casa-grande = onde viviam os escravizados</label>
+          <label><input type="radio" name="q3" value="b"> b) Senzala = onde morava o senhor de engenho</label>
+          <label><input type="radio" name="q3" value="c"> c) Moenda = máquina que moía a cana</label>
+          <label><input type="radio" name="q3" value="d"> d) Canavial = local da igreja</label>
+        </div>
+        <div class="questao-respondida" id="r3"></div>
+      </div>
+      
+      <!-- Q4 - Difícil -->
+      <div class="simulado-questao">
+        <h4>Questão 4)</h4>
+        <p>A frase: <em>"A sociedade que se desenvolveu a partir dos engenhos de açúcar era essencialmente rural"</em> significa que:</p>
+        <div class="sim-opcoes">
+          <label><input type="radio" name="q4" value="a"> a) As pessoas viviam principalmente em cidades grandes.</label>
+          <label><input type="radio" name="q4" value="b"> b) As pessoas viviam principalmente no campo, em grandes fazendas.</label>
+          <label><input type="radio" name="q4" value="c"> c) As pessoas viviam em fábricas.</label>
+          <label><input type="radio" name="q4" value="d"> d) As pessoas viviam em cortiços.</label>
+        </div>
+        <div class="questao-respondida" id="r4"></div>
+      </div>
+      
+      <!-- Q5 - Médio -->
+      <div class="simulado-questao">
+        <h4>Questão 5)</h4>
+        <p>A viagem dos africanos da África até o Brasil, nos navios negreiros, durava cerca de:</p>
+        <div class="sim-opcoes">
+          <label><input type="radio" name="q5" value="a"> a) Dois dias</label>
+          <label><input type="radio" name="q5" value="b"> b) Duas semanas</label>
+          <label><input type="radio" name="q5" value="c"> c) Dois meses</label>
+          <label><input type="radio" name="q5" value="d"> d) Dois anos</label>
+        </div>
+        <div class="questao-respondida" id="r5"></div>
+      </div>
+      
+      <!-- Q6 - Difícil -->
+      <div class="simulado-questao">
+        <h4>Questão 6)</h4>
+        <p>O Cronos perguntou ao Tempinho: "Qual é a melhor palavra para explicar a relação entre a escravidão e a formação dos quilombos?". Tempinho hesitou. Você sabe?</p>
+        <div class="sim-opcoes">
+          <label><input type="radio" name="q6" value="a"> a) Aceitação — eles concordavam com a situação.</label>
+          <label><input type="radio" name="q6" value="b"> b) Negociação — eles conversavam com os senhores.</label>
+          <label><input type="radio" name="q6" value="c"> c) Resistência — eles lutavam contra a escravidão.</label>
+          <label><input type="radio" name="q6" value="d"> d) Indiferença — eles não se importavam.</label>
+        </div>
+        <div class="questao-respondida" id="r6"></div>
+      </div>
+      
+      <!-- Q7 - Médio -->
+      <div class="simulado-questao">
+        <h4>Questão 7)</h4>
+        <p>Os bandeirantes foram colonos que organizaram expedições pelo interior do Brasil. Eles ficaram famosos por descobrir:</p>
+        <div class="sim-opcoes">
+          <label><input type="radio" name="q7" value="a"> a) Petróleo no Nordeste</label>
+          <label><input type="radio" name="q7" value="b"> b) Ouro e pedras preciosas em Minas Gerais</label>
+          <label><input type="radio" name="q7" value="c"> c) Café em São Paulo</label>
+          <label><input type="radio" name="q7" value="d"> d) Diamantes na Amazônia</label>
+        </div>
+        <div class="questao-respondida" id="r7"></div>
+      </div>
+      
+      <!-- Q8 - Difícil -->
+      <div class="simulado-questao">
+        <h4>Questão 8)</h4>
+        <p>A sociedade mineradora (em Minas Gerais) era diferente da sociedade açucareira. Enquanto a do açúcar era rural, a sociedade do ouro era predominantemente <strong>URBANA</strong>. Isso significa que as pessoas viviam em:</p>
+        <div class="sim-opcoes">
+          <label><input type="radio" name="q8" value="a"> a) Fazendas de café</label>
+          <label><input type="radio" name="q8" value="b"> b) Vilas</label>
+          <label><input type="radio" name="q8" value="c"> c) Engenhos</label>
+          <label><input type="radio" name="q8" value="d"> d) Cavernas</label>
+        </div>
+        <div class="questao-respondida" id="r8"></div>
+      </div>
+      
+      <!-- Q9 - Difícil -->
+      <div class="simulado-questao">
+        <h4>Questão 9)</h4>
+        <p>Imagine que você é um viajante no ano de 1750 e está em Minas Gerais. Você vê pessoas trabalhando num rio com uma espécie de tigela, lavando areia. O que elas estão fazendo?</p>
+        <div class="sim-opcoes">
+          <label><input type="radio" name="q9" value="a"> a) Plantando cana-de-açúcar</label>
+          <label><input type="radio" name="q9" value="b"> b) Procurando ouro usando a bateia</label>
+          <label><input type="radio" name="q9" value="c"> c) Plantando café</label>
+          <label><input type="radio" name="q9" value="d"> d) Construindo uma ferrovia</label>
+        </div>
+        <div class="questao-respondida" id="r9"></div>
+      </div>
+      
+      <!-- Q10 - Médio -->
+      <div class="simulado-questao">
+        <h4>Questão 10)</h4>
+        <p>O café se tornou tão importante para o Brasil a partir de 1830 que ganhou o apelido de:</p>
+        <div class="sim-opcoes">
+          <label><input type="radio" name="q10" value="a"> a) Ouro Branco</label>
+          <label><input type="radio" name="q10" value="b"> b) Ouro Negro</label>
+          <label><input type="radio" name="q10" value="c"> c) Ouro Verde</label>
+          <label><input type="radio" name="q10" value="d"> d) Ouro Amarelo</label>
+        </div>
+        <div class="questao-respondida" id="r10"></div>
+      </div>
+      
+      <!-- Q11 - Difícil -->
+      <div class="simulado-questao">
+        <h4>Questão 11)</h4>
+        <p>Para facilitar o transporte do café das fazendas até os portos, houve um grande investimento em um meio de transporte. Que transporte foi esse?</p>
+        <div class="sim-opcoes">
+          <label><input type="radio" name="q11" value="a"> a) Aviões</label>
+          <label><input type="radio" name="q11" value="b"> b) Carros</label>
+          <label><input type="radio" name="q11" value="c"> c) Navios negreiros</label>
+          <label><input type="radio" name="q11" value="d"> d) Ferrovias (trens)</label>
+        </div>
+        <div class="questao-respondida" id="r11"></div>
+      </div>
+      
+      <!-- Q12 - Difícil -->
+      <div class="simulado-questao">
+        <h4>Questão 12)</h4>
+        <p>Em 1850, o Brasil parou de receber africanos escravizados (proibição do tráfico). Para conseguir trabalhadores para as fazendas de café, o que o Brasil incentivou?</p>
+        <div class="sim-opcoes">
+          <label><input type="radio" name="q12" value="a"> a) O retorno dos bandeirantes ao interior.</label>
+          <label><input type="radio" name="q12" value="b"> b) A imigração — a entrada de pessoas estrangeiras para morar e trabalhar aqui.</label>
+          <label><input type="radio" name="q12" value="c"> c) A construção de mais engenhos no Nordeste.</label>
+          <label><input type="radio" name="q12" value="d"> d) O retorno das pessoas escravizadas para a África.</label>
+        </div>
+        <div class="questao-respondida" id="r12"></div>
+      </div>
+      
+      <!-- Q13 - Médio -->
+      <div class="simulado-questao">
+        <h4>Questão 13)</h4>
+        <p>O ano de 1888 é muito importante na história do Brasil. Por quê?</p>
+        <div class="sim-opcoes">
+          <label><input type="radio" name="q13" value="a"> a) Foi quando começou a produção de café.</label>
+          <label><input type="radio" name="q13" value="b"> b) Foi declarado o FIM da escravidão no Brasil.</label>
+          <label><input type="radio" name="q13" value="c"> c) Foi quando os portugueses chegaram.</label>
+          <label><input type="radio" name="q13" value="d"> d) Foi quando descobriram o ouro.</label>
+        </div>
+        <div class="questao-respondida" id="r13"></div>
+      </div>
+      
+      <!-- Q14 - Difícil -->
+      <div class="simulado-questao">
+        <h4>Questão 14)</h4>
+        <p>Ana é uma menina pesquisadora e descobriu que, na história do Brasil, três sociedades usaram o trabalho de pessoas escravizadas como base. Quais foram?</p>
+        <div class="sim-opcoes">
+          <label><input type="radio" name="q14" value="a"> a) Açucareira, mineradora e cafeeira.</label>
+          <label><input type="radio" name="q14" value="b"> b) Apenas a açucareira.</label>
+          <label><input type="radio" name="q14" value="c"> c) Apenas a mineradora.</label>
+          <label><input type="radio" name="q14" value="d"> d) As sociedades das fábricas.</label>
+        </div>
+        <div class="questao-respondida" id="r14"></div>
+      </div>
+      
+      <!-- Q15 - Difícil -->
+      <div class="simulado-questao">
+        <h4>Questão 15)</h4>
+        <p>Maria é uma imigrante italiana que chegou ao Brasil em 1885 para trabalhar nas lavouras de café. Depois de um tempo, ela deixou a fazenda e foi para São Paulo. Lá, encontrou trabalho em uma fábrica e foi morar em um prédio antigo dividido em vários quartinhos, chamado:</p>
+        <div class="sim-opcoes">
+          <label><input type="radio" name="q15" value="a"> a) Senzala</label>
+          <label><input type="radio" name="q15" value="b"> b) Casa-grande</label>
+          <label><input type="radio" name="q15" value="c"> c) Cortiço</label>
+          <label><input type="radio" name="q15" value="d"> d) Quilombo</label>
+        </div>
+        <div class="questao-respondida" id="r15"></div>
+      </div>
+      
+    </form>
+    
+    <button id="btnEntregar" onclick="entregarSimulado()">📬 Entregar Prova Final</button>
+    
+    <div class="resultado-simulado" id="resultadoSimulado">
+      <h3>🎉 Prova Entregue, Viajante!</h3>
+      <div class="nota-grande" id="notaFinal">0/15</div>
+      <div id="mensagemFinal"></div>
+      <a href="gabarito.html" target="_blank" class="btn-gabarito" id="btnGabarito" style="display:none;">
+        🔓 Ver Gabarito Comentado
+      </a>
+      <br>
+      <button class="btn-reiniciar" onclick="reiniciarSimulado()">🔁 Refazer Prova</button>
+    </div>
+    
+  </div>
+  
+</div> <!-- fim do container -->
+
+<script>
+  // ============== TROCAR ABAS ==============
+  function trocarAba(nome) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(nome).classList.add('active');
+    const btnMap = {
+      'leitura': 0, 'resumo': 1, 'jogo': 2, 'simulado': 3
+    };
+    document.querySelectorAll('.tab-btn')[btnMap[nome]].classList.add('active');
+    window.scrollTo({top: 0, behavior: 'smooth'});
+    if (nome === 'jogo') iniciarJogo();
+  }
+  
+  // ============== BLOCOS EXPANSÍVEIS ==============
+  function abrirBloco(n) {
+    const bloco = document.getElementById('bloco' + n);
+    bloco.classList.toggle('aberto');
+  }
+  
+  // ============== LEITURA GUIADA — perguntas ==============
+  const totalPerguntasLeitura = 22; // 6 blocos x 3 + revisão x 4 = 22
+  let perguntasRespondidas = new Set();
+  let acertosLeitura = 0;
+  
+  function responder(botao, certo, idPerg) {
+    if (perguntasRespondidas.has(idPerg)) return;
+    perguntasRespondidas.add(idPerg);
+    
+    const pergunta = botao.closest('.pergunta');
+    const feedback = pergunta.querySelector('.feedback');
+    const opcoes = pergunta.querySelectorAll('.opcao');
+    
+    opcoes.forEach(o => o.style.pointerEvents = 'none');
+    
+    if (certo) {
+      botao.classList.add('certo');
+      feedback.className = 'feedback acerto show';
+      feedback.innerHTML = '🎉 <strong>Mandou bem, viajante!</strong> Resposta correta!';
+      acertosLeitura++;
+      criarConfetes();
+    } else {
+      botao.classList.add('errado');
+      feedback.className = 'feedback erro show';
+      // Mostra qual era a correta
+      opcoes.forEach(o => {
+        if (o.getAttribute('onclick').includes('true')) {
+          o.classList.add('certo');
+        }
+      });
+      feedback.innerHTML = '🤔 <strong>Quase!</strong> Olhe a resposta correta destacada em verde. Você consegue na próxima!';
+    }
+    
+    atualizarProgresso();
+  }
+  
+  function atualizarProgresso() {
+    const pct = Math.round((perguntasRespondidas.size / totalPerguntasLeitura) * 100);
+    const barra = document.getElementById('progressoLeitura');
+    barra.style.width = pct + '%';
+    barra.textContent = pct + '%';
+    
+    const estrelas = Math.min(5, Math.floor(acertosLeitura / Math.ceil(totalPerguntasLeitura / 5)));
+    let str = '';
+    for (let i = 0; i < 5; i++) str += i < estrelas ? '⭐' : '☆';
+    document.getElementById('estrelasLeitura').textContent = str + '  (' + acertosLeitura + ' acertos)';
+  }
+  
+  // ============== CONFETES ==============
+  function criarConfetes() {
+    const cores = ['#6c5ce7', '#fd79a8', '#00cec9', '#fdcb6e', '#e17055'];
+    for (let i = 0; i < 15; i++) {
+      const c = document.createElement('div');
+      c.className = 'confete';
+      c.style.left = Math.random() * 100 + '%';
+      c.style.background = cores[Math.floor(Math.random() * cores.length)];
+      c.style.animationDelay = Math.random() * 0.5 + 's';
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 3000);
+    }
+  }
+  
+  // ============== ESTRELAS NO FUNDO ==============
+  for (let i = 0; i < 25; i++) {
+    const e = document.createElement('div');
+    e.className = 'estrela';
+    e.style.top = Math.random() * 100 + '%';
+    e.style.left = Math.random() * 100 + '%';
+    const tam = Math.random() * 3 + 1;
+    e.style.width = tam + 'px';
+    e.style.height = tam + 'px';
+    e.style.animationDelay = Math.random() * 3 + 's';
+    document.body.appendChild(e);
+  }
+  
+  // ============== JOGO V/F (Teste de Memória) ==============
+  const bancoFrases = [
+    { f: "O engenho era o local onde se produzia açúcar antigamente.", v: true, exp: "✅ Correto! Engenho era a fazenda onde se fazia o açúcar." },
+    { f: "Os bandeirantes foram exploradores que procuravam ouro e pedras preciosas no interior do Brasil.", v: true, exp: "✅ Correto! Eles organizavam as 'bandeiras' (expedições) pelo interior." },
+    { f: "A Senzala era a casa onde morava o senhor de engenho e a família dele.", v: false, exp: "❌ Errado! Na senzala viviam as pessoas escravizadas. O senhor morava na Casa-grande." },
+    { f: "A bateia era usada para separar o ouro da areia dos rios.", v: true, exp: "✅ Correto! Era uma espécie de tigela usada para lavar a areia." },
+    { f: "O café foi apelidado de 'Ouro Verde'.", v: true, exp: "✅ Correto! Por causa da grande importância e do valor que tinha." },
+    { f: "Os africanos vinham para o Brasil por vontade própria, em barcos turísticos.", v: false, exp: "❌ Errado! Eles eram trazidos à FORÇA, em navios chamados navios negreiros." },
+    { f: "Os quilombos eram comunidades de pessoas escravizadas que conseguiam fugir em busca de liberdade.", v: true, exp: "✅ Correto! Era a forma mais famosa de RESISTÊNCIA dos escravizados." },
+    { f: "A escravidão foi declarada extinta no Brasil em 1888.", v: true, exp: "✅ Correto! 1888 é uma data importantíssima da história do Brasil." },
+    { f: "A maior parte dos engenhos de açúcar ficava em Minas Gerais.", v: false, exp: "❌ Errado! Os engenhos prosperaram no NORDESTE, especialmente em Pernambuco. Minas Gerais é da época do ouro." },
+    { f: "A moenda era a máquina que moía a cana para extrair o caldo (garapa).", v: true, exp: "✅ Correto! Era uma peça fundamental do engenho." },
+    { f: "Os imigrantes europeus vieram para trabalhar nas fazendas de café após a proibição do tráfico de escravizados.", v: true, exp: "✅ Correto! O Brasil incentivou a vinda de italianos, alemães, etc." },
+    { f: "A sociedade do ouro em Minas Gerais era rural (do campo), igual à do açúcar.", v: false, exp: "❌ Errado! A sociedade mineradora era URBANA (de cidade) — as pessoas viviam em vilas." },
+    { f: "As ferrovias (trens) foram criadas para transportar o café das fazendas até os portos.", v: true, exp: "✅ Correto! Os trens aceleraram muito o transporte do café." },
+    { f: "Nas fábricas, utilizava-se mão de obra de pessoas escravizadas.", v: false, exp: "❌ Errado! Nas fábricas, que surgiram após 1850, trabalhavam principalmente imigrantes e ex-escravizados livres." },
+    { f: "Os cortiços eram fazendas de café com muitos quartinhos.", v: false, exp: "❌ Errado! Cortiços eram habitações coletivas nas CIDADES, prédios antigos divididos em quartinhos." },
+    { f: "Migrar significa mudar-se de um lugar para outro.", v: true, exp: "✅ Correto! Migrar = mudar-se. Estrangeiro = quem nasce em outro país." },
+    { f: "A produção de açúcar começou no Brasil por volta de 1530.", v: true, exp: "✅ Correto! Foi a primeira grande riqueza do Brasil colonial." },
+    { f: "As vilas em Minas Gerais foram fundadas a partir de 1696, após a descoberta do ouro.", v: true, exp: "✅ Correto! Milhares de pessoas migraram para lá." }
+  ];
+  
+  let jogoFrases = [], jogoIdx = 0, jogoAcertos = 0;
+  
+  function iniciarJogo() {
+    // Embaralha e pega 12
+    const embaralhadas = [...bancoFrases].sort(() => Math.random() - 0.5);
+    jogoFrases = embaralhadas.slice(0, 12);
+    jogoIdx = 0;
+    jogoAcertos = 0;
+    document.getElementById('jogoCard').style.display = 'block';
+    document.getElementById('resultadoJogo').style.display = 'none';
+    document.getElementById('btnProxima').style.display = 'none';
+    mostrarFraseJogo();
+  }
+  
+  function mostrarFraseJogo() {
+    if (jogoIdx >= jogoFrases.length) {
+      finalizarJogo();
+      return;
+    }
+    document.getElementById('jogoStatus').textContent = 'Pergunta ' + (jogoIdx + 1) + ' de 12';
+    document.getElementById('jogoAcertos').textContent = jogoAcertos;
+    document.getElementById('jogoPergunta').textContent = jogoFrases[jogoIdx].f;
+    document.getElementById('jogoFeedback').className = 'jogo-feedback';
+    document.getElementById('jogoFeedback').innerHTML = '';
+    document.getElementById('btnProxima').style.display = 'none';
+    document.querySelectorAll('.btn-vf').forEach(b => b.disabled = false);
+  }
+  
+  function responderJogo(resp) {
+    const frase = jogoFrases[jogoIdx];
+    const fb = document.getElementById('jogoFeedback');
+    document.querySelectorAll('.btn-vf').forEach(b => b.disabled = true);
+    
+    if (resp === frase.v) {
+      jogoAcertos++;
+      fb.className = 'jogo-feedback acerto show';
+      fb.innerHTML = '<strong>🎉 Mandou bem!</strong><br>' + frase.exp;
+      criarConfetes();
+    } else {
+      fb.className = 'jogo-feedback erro show';
+      fb.innerHTML = '<strong>🤔 Não foi dessa vez!</strong><br>' + frase.exp;
+    }
+    document.getElementById('jogoAcertos').textContent = jogoAcertos;
+    document.getElementById('btnProxima').style.display = 'inline-block';
+  }
+  
+  function proximaPergunta() {
+    jogoIdx++;
+    mostrarFraseJogo();
+  }
+  
+  function finalizarJogo() {
+    document.getElementById('jogoCard').style.display = 'none';
+    const resBox = document.getElementById('resultadoJogo');
+    resBox.style.display = 'block';
+    
+    const pct = Math.round((jogoAcertos / 12) * 100);
+    let estrelas = '';
+    const qtdEstrelas = Math.min(5, Math.ceil(jogoAcertos / 2.5));
+    for (let i = 0; i < 5; i++) estrelas += i < qtdEstrelas ? '⭐' : '☆';
+    document.getElementById('resultadoEstrelas').textContent = estrelas;
+    
+    let msg;
+    if (pct === 100) msg = '<strong>🏆 PERFEITO!</strong><br>Você é um Viajante Oficial do Tempo! Sabe TUDO de história!';
+    else if (pct >= 80) msg = '<strong>🌟 EXCELENTE!</strong><br>Você está super preparado para a prova!';
+    else if (pct >= 60) msg = '<strong>👏 BOM!</strong><br>Você acertou bem! Revise os pontos que errou.';
+    else if (pct >= 40) msg = '<strong>💪 Continue tentando!</strong><br>Volta na Leitura Guiada e tenta de novo!';
+    else msg = '<strong>📚 Vamos revisar!</strong><br>Volta para o Diário de Bordo e estuda mais um pouquinho.';
+    
+    document.getElementById('resultadoMsg').innerHTML = '<p style="font-size:1.1em; margin: 10px 0;">Acertos: ' + jogoAcertos + ' / 12 (' + pct + '%)</p>' + msg;
+  }
+  
+  // ============== SIMULADO ==============
+  const gabaritoSimulado = {
+    q1: 'c', q2: 'b', q3: 'c', q4: 'b', q5: 'c',
+    q6: 'c', q7: 'b', q8: 'b', q9: 'b', q10: 'c',
+    q11: 'd', q12: 'b', q13: 'b', q14: 'a', q15: 'c'
+  };
+  
+  function entregarSimulado() {
+    const naoRespondidas = [];
+    let acertos = 0;
+    
+    for (let i = 1; i <= 15; i++) {
+      const radios = document.getElementsByName('q' + i);
+      let escolha = null;
+      radios.forEach(r => { if (r.checked) escolha = r.value; });
+      
+      if (escolha === null) {
+        naoRespondidas.push(i);
+      } else if (escolha === gabaritoSimulado['q' + i]) {
+        acertos++;
+        document.getElementById('r' + i).textContent = '✓ Respondida';
+        document.getElementById('r' + i).className = 'questao-respondida ok';
+      } else {
+        document.getElementById('r' + i).textContent = '✓ Respondida';
+        document.getElementById('r' + i).className = 'questao-respondida ok';
+      }
+    }
+    
+    if (naoRespondidas.length > 0) {
+      alert('🚨 Atenção! Faltam responder as questões: ' + naoRespondidas.join(', ') + '\n\nResponda todas antes de entregar a prova final!');
+      return;
+    }
+    
+    // Bloqueia inputs
+    document.querySelectorAll('#formSimulado input').forEach(i => i.disabled = true);
+    document.getElementById('btnEntregar').style.display = 'none';
+    
+    // Mostra resultado
+    const resBox = document.getElementById('resultadoSimulado');
+    resBox.classList.add('show');
+    document.getElementById('notaFinal').textContent = acertos + '/15';
+    
+    let msg;
+    if (acertos === 15) msg = '<strong>🏆 PERFEITO!</strong><br>Você é um VIAJANTE OFICIAL DO TEMPO! Manda muito bem!';
+    else if (acertos >= 12) msg = '<strong>🌟 EXCELENTE!</strong><br>Você está super preparado para a prova de quinta!';
+    else if (acertos >= 9) msg = '<strong>👏 BOM!</strong><br>Confira o gabarito e revise o que errou!';
+    else if (acertos >= 6) msg = '<strong>💪 Quase lá!</strong><br>Leia o gabarito comentado com muita atenção!';
+    else msg = '<strong>📚 Vamos revisar!</strong><br>Volte na Leitura Guiada e no Diário de Bordo. Você consegue!';
+    
+    document.getElementById('mensagemFinal').innerHTML = '<p style="font-size:1.15em; margin: 15px 0;">' + msg + '</p>';
+    document.getElementById('btnGabarito').style.display = 'inline-block';
+    
+    // libera o gabarito (armazenamento local opcional)
+    try { localStorage.setItem('simuladoHistoriaLiberado', '1'); } catch(e){}
+    
+    criarConfetes();
+    setTimeout(() => criarConfetes(), 400);
+    setTimeout(() => resBox.scrollIntoView({behavior: 'smooth'}), 300);
+  }
+  
+  function reiniciarSimulado() {
+    document.getElementById('formSimulado').reset();
+    document.querySelectorAll('#formSimulado input').forEach(i => i.disabled = false);
+    document.querySelectorAll('.questao-respondida').forEach(a => { a.textContent = ''; a.className = 'questao-respondida'; });
+    document.querySelectorAll('.sim-opcoes label').forEach(l => l.classList.remove('escolhida'));
+    document.getElementById('btnEntregar').style.display = 'block';
+    document.getElementById('resultadoSimulado').classList.remove('show');
+    document.getElementById('btnGabarito').style.display = 'none';
+    try { localStorage.removeItem('simuladoHistoriaLiberado'); } catch(e){}
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }
+  
+  // Destaca opção escolhida no simulado
+  document.querySelectorAll('.sim-opcoes input[type="radio"]').forEach(r => {
+    r.addEventListener('change', function() {
+      const labels = this.closest('.sim-opcoes').querySelectorAll('label');
+      labels.forEach(l => l.classList.remove('escolhida'));
+      this.closest('label').classList.add('escolhida');
+    });
+  });
+  
+  // Inicializa
+  atualizarProgresso();
+  
+</script>
+
+</body>
+</html>
